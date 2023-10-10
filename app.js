@@ -1,5 +1,5 @@
 // Дэлгэцтэй ажиллах контроллер
-var uiController = (function() {
+var uiController = (function() {//private function
   var DOMStrings = {
     inputType : ".add__type",
     inputDescription : ".add__description",
@@ -14,7 +14,7 @@ var uiController = (function() {
         value:document.querySelector(DOMStrings.inputValue).value
       };
     },
-
+//public service
     getDOMStrings : function(){
       return DOMStrings;
     }
@@ -40,7 +40,7 @@ var financeController = (function() {
   var i2 = new Income(2 , 'Зээл авсан', 1500000);
 //private data
 var data = {
-  allItems : {
+  items : {
     inc : [],
     exp : []
   },
@@ -51,13 +51,14 @@ var data = {
   }
 };
 
-return {
+return { //data ruu nemj ugnu
   addItem : function(type, desc, val){
     var item, id;
 
     if(data.items[type].length === 0) id = 1;
     else{
       id = data.items[type][data.items[type].length - 1].id + 1;
+      //length - 1 gedeg n niit element too -1 ni [type][0] hamgiin ehni element iig avna 
     }
 
     if(type === 'inc'){
@@ -85,7 +86,6 @@ var appController = (function(uiController, financeController) {
         //1.оруулах өгөгдөлийг дэлгэцээс олж авна.
         var input = uiController.getInput();
         //2. олж авсан санхүүгийн контроллерт дамжуулж авна.
-
         financeController.addItem(input.type, input.description, input.value);
         //3. олж авсан өгөгдөлүүдээ вэб дээрээ тохирох хэсэгт нь гаргана.
         //4. төсвийг тооцоолно.
