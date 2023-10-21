@@ -4,29 +4,47 @@ var uiController = (function() {//private function
     inputType : ".add__type", // inc or exp
     inputDescription : ".add__description", //desc
     inputValue : ".add__value", // value
-    addBtn : ".add__btn"
+    addBtn : ".add__btn",
+    incomeList : '.income__list',
+    expenseList : '.expenses__list'
   };
   return{//public service
     getInput:function(){
       return{
         type: document.querySelector(DOMStrings.inputType).value,
         description: document.querySelector(DOMStrings.inputDescription).value,
-        value:document.querySelector(DOMStrings.inputValue).value
+        value:parseInt(document.querySelector(DOMStrings.inputValue).value)
       };
     },
 //public service
     getDOMStrings : function(){
       return DOMStrings;
     },
+
+    clearFields : function(){
+      var fields = document.querySelectorAll(DOMStrings.inputDescription + ',' + DOMStrings.inputValue
+      );
+      // Convert List to Array
+      var fieldsArr = Array.prototype.slice.call(fields);
+      fieldsArr.forEach(function(el, index, array){//el=element index = index harulna 
+        el.value = "";
+      });
+
+      fieldsArr[0].focus();
+      // for(var i = 0; i < fieldsArr.length; i++){
+      //   fieldsArr[i].value = "";
+      // }
+    },
+
     addListItem : function(item,type){
       //орлого зарлага агуулсан html бэлтгэнэ.
       var html, list;
       
       if(type === 'inc'){
-        list = '.income__list';
+        list = DOMStrings.incomeList;
         html ='<div class="item clearfix" id="$id$"><div class="item__description">$$DESCRIPTION$$</div><div class="right clearfix"><div class="item__value">$VALUE$</div> <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       }else{
-        list = '.expenses__list';
+        list = DOMStrings.expenseList;
         html ='<div class="item clearfix" id="$id$"><div class="item__description">$$DESCRIPTION$$</div><div class="right clearfix"><div class="item__value">$VALUE$</div><div class="item__percentage">21%</div><div class="item__delete">   <button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
       }
       //тэр хтмл дотроо зарлагын утгуудыг REPLACE хийж өгнө.
@@ -108,12 +126,17 @@ var appController = (function(uiController, financeController) {
   var ctrlAddItem = function(){
         //1.оруулах өгөгдөлийг дэлгэцээс олж авна.
         var input = uiController.getInput();
-        //2. олж авсан санхүүгийн контроллерт дамжуулж авна.
+
+        if(input.description !== "" && input.value){
+           //2. олж авсан санхүүгийн контроллерт дамжуулж авна.
         var item = financeController.addItem(input.type, input.description, input.value);
         //3. олж авсан өгөгдөлүүдээ вэб дээрээ тохирох хэсэгт нь гаргана.
         uiController.addListItem(item, input.type);
+        uiController.clearFields();
         //4. төсвийг тооцоолно.
         //5. Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
+        }
+       
   };
 
 var setupEventListeners = function(){
