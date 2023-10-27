@@ -16,7 +16,7 @@ var uiController = (function() {//private function
   return{//public service
     getInput:function(){
       return{
-        type: document.querySelector(DOMStrings.inputType).value,
+        type: document.querySelector(DOMStrings.inputType).value,//===> finance ctrller
         description: document.querySelector(DOMStrings.inputDescription).value,
         value:parseInt(document.querySelector(DOMStrings.inputValue).value)
       };
@@ -52,7 +52,7 @@ var uiController = (function() {//private function
 
     deleteListItem : function(id){
       var el = document.getElementById(id);
-      el.parentNode.removeChild(el);
+      el.parentNode.removeChild(el);//parentnode etseg element
 
     },
 
@@ -93,7 +93,19 @@ var financeController = (function() {
     this.id = id;
     this.description = description;
     this.value = value;
+    this.percentage = -1;
   }
+
+  Expense.prototype.calcPercentage = function(totalIncome){
+    if(totalIncome > 0)
+    this.percentage = Math.round((this.value / totalIncome ) * 100);
+  else this.percentage = 0;
+  }
+
+  Expense.prototype.getPercentage = function(){
+    return this.percentage;
+  }
+
   var calculateTotal = function(type){
     var sum = 0;
     data.items[type].forEach(function(el){
@@ -134,9 +146,24 @@ return { //data ruu nemj ugnu
     data.tusuv = data.totals.inc - data.totals.exp;
 
     //Орлого зарлагын хувь ийг тооцоолно.
+    if(data.totals.inc > 0)
     data.huvi = Math.round((data.totals.exp / data.totals.inc) *100);
   },
 
+
+  calculatePercentages : function(){
+    data.items.exp.forEach(function(el){
+      el.calcPercentage(data.totals.inc);
+    });
+  },
+
+getPercentages : function(){
+  var allPercentages = data.items.exp.map(function(el){
+    return el.getPercentage;
+  });
+
+  return allPercentages;
+},
   tusviigAvah :function(){//tusuv ui controller toi holbootoi.
     return {
       budget : data.tusuv,
@@ -204,19 +231,33 @@ var appController = (function(uiController, financeController) {
         var item = financeController.addItem(input.type, input.description, input.value);
 
         //3. олж авсан өгөгдөлүүдээ вэб дээрээ тохирох хэсэгт нь гаргана.
-        uiController.addListItem(item, input.type);
+        uiController.addListItem(item, input.type);//delgetsend inc
         uiController.clearFields();
 
-        //4. төсвийг тооцоолно.
-        financeController.tusuvTootsooloh();
 
-        //5. Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
-        var tusuv = financeController.tusviigAvah();
-        //6. Төсвийн тооцоог дэлгэцэнд гаргана.
-        uiController.tusviigUzuuleh(tusuv);
+        //Төсвийг шинээр тооцоолж дэлгэцэнд үзүүлнэ.
+        updateTusuv();
         }
        
   };
+ var updateTusuv = function(){
+    //4. төсвийг тооцоолно.
+    financeController.tusuvTootsooloh();
+
+    //5. Эцсийн үлдэгдэл, тооцоог дэлгэцэнд гаргана.
+    var tusuv = financeController.tusviigAvah();
+
+    //6. Төсвийн тооцоог дэлгэцэнд гаргана.
+    uiController.tusviigUzuuleh(tusuv);
+
+    //7.Элемэнтүүдийн хувьг тооцоолно.
+    financeController.calculatePercentages();
+
+    //8. Элемэнтүүдийн хувийг хүлээж авна.
+    var allPercentages = financeController.getPercentages();
+   //9. Эдгээр хувийг дэлгэцэнд гаргана.
+    console.log();
+};
 
 var setupEventListeners = function(){
 
@@ -248,6 +289,8 @@ var setupEventListeners = function(){
       //2. Delgets deeres ene elementiig ustagna.
       uiController.deleteListItem(id);//deed id gaas damjuulav.
       //3. Uldegdel tootsoog shinechilj haruulna.
+              //Төсвийг шинээр тооцоолж дэлгэцэнд үзүүлнэ.
+              updateTusuv();
     }
   });
 
