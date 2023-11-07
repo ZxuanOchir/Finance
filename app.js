@@ -11,9 +11,47 @@ var uiController = (function() {//private function
     incomeLabel : ".budget__income--value",
     expenseLabel : ".budget__expenses--value",
     percentageLabel : ".budget__expenses--percentage",
-    containerDiv : ".container"
+    containerDiv : ".container",
+    expensePercentageLabel : ".item__percentage",
+    dateLabel : ".budget__title--month",
   };
+
+  var nodeListForeach = function(list, callback){//list = nodelist callback = function
+    for(var i = 0; i < list.length; i++){
+      callback(list[i],i);
+    }
+  };
+
+  var formatMoney = function(too, type){
+too = '' + too;
+var x = too.split("").reverse().join("");
+
+var y = '';
+var count = 1;
+
+for(var i = 0 ; i < x.length; i++){
+  y = y + x[i];
+
+  if(count%3 === 0) y = y + ',';
+  count ++;
+}
+
+var z = y.split("").reverse().join("");
+
+if(z[0] === ',') z = z.substring(1, z.length - 1);
+
+  if(type === 'inc')z = '+' + z;
+  else z = '- ' + z;
+
+  return z;
+  };
+
   return{//public service
+    displayDate : function(){
+      var unuudur = new Date();
+
+      document.querySelector(DOMStrings.dateLabel).textContent = unuudur.getFullYear() + " оны " + unuudur.getMonth() + ' сарын өрхийн санхүү';
+    },
     getInput:function(){
       return{
         type: document.querySelector(DOMStrings.inputType).value,//===> finance ctrller
@@ -21,6 +59,17 @@ var uiController = (function() {//private function
         value:parseInt(document.querySelector(DOMStrings.inputValue).value)
       };
     },
+
+    displayPercentages : function(allPercentages){
+      //elementin nodelist iig olno
+      var elements = document.querySelectorAll(DOMStrings.expensePercentageLabel);
+
+      //element bolgonii huvid zarlagiin huviig massivaas avch shivej oruulah
+      nodeListForeach(elements, function(el,index){
+        el.textContent = allPercentages[index];
+      });
+    },
+
 //public service
     getDOMStrings : function(){
       return DOMStrings;
@@ -39,9 +88,12 @@ var uiController = (function() {//private function
     },
 
     tusviigUzuuleh : function(tusuv){//tusuv gej nerte obect shuuj avna gj uzy
-      document.querySelector(DOMStrings.tusuvLabel).textContent = tusuv.budget;
-      document.querySelector(DOMStrings.incomeLabel).textContent = tusuv.totalInc;
-      document.querySelector(DOMStrings.expenseLabel).textContent = tusuv.totalExp;
+      var type;
+      if(tusuv.budget > 0) type = 'inc';
+      else type = 'exp';
+      document.querySelector(DOMStrings.tusuvLabel).textContent = formatMoney(tusuv.budget,type);
+      document.querySelector(DOMStrings.incomeLabel).textContent = formatMoney(tusuv.totalInc, 'inc');
+      document.querySelector(DOMStrings.expenseLabel).textContent = formatMoney(tusuv.totalExp, 'exp');
       if(tusuv.huvi !== 0){
         document.querySelector(DOMStrings.percentageLabel).textContent = tusuv.huvi + '%';
       }
@@ -71,7 +123,7 @@ var uiController = (function() {//private function
 
       html = html.replace('$id$', item.id);
       html = html.replace('$$DESCRIPTION$$', item.description);
-      html = html.replace('$VALUE$', item.value);
+      html = html.replace('$VALUE$', formatMoney(item.value, type));
       //Бэлтсэгэн html ээ DOM руу хийж өгнө.
 
       document.querySelector(list).insertAdjacentHTML('beforeend', html);
@@ -96,7 +148,7 @@ var financeController = (function() {
     this.percentage = -1;
   }
 
-  Expense.prototype.calcPercentage = function(totalIncome){
+  Expense.prototype.calcPercentage = function(totalIncome){//prtotyped Expense
     if(totalIncome > 0)
     this.percentage = Math.round((this.value / totalIncome ) * 100);
   else this.percentage = 0;
@@ -256,7 +308,7 @@ var appController = (function(uiController, financeController) {
     //8. Элемэнтүүдийн хувийг хүлээж авна.
     var allPercentages = financeController.getPercentages();
    //9. Эдгээр хувийг дэлгэцэнд гаргана.
-    console.log();
+    uiController.displayPercentages(allPercentages);
 };
 
 var setupEventListeners = function(){
@@ -282,7 +334,7 @@ var setupEventListeners = function(){
       var type = arr[0];//"inc"
       var itemId = parseInt(arr[1]);//"2"
 
-       console.log(type + '===> ' +itemId);
+      //  console.log(type + '===> ' +itemId);
 
       //1. Санхүүгийн модулиас устгаж өгнө. type,id ashiglan
       financeController.deleteItem(type, itemId);
@@ -299,6 +351,7 @@ var setupEventListeners = function(){
   return {
     init : function(){
       console.log('Application started...');
+      uiController.displayDate();
       uiController.tusviigUzuuleh({
         tusuv : 0,
         huvi : 0,
